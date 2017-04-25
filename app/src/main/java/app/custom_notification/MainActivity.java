@@ -15,9 +15,9 @@ public class MainActivity extends AppCompatActivity {
 
     private NotificationCompat.Builder builder;
     private NotificationManager notificationManager;
-    private int notification_id;
-    private RemoteViews remoteViews;
-    private Context context;
+    private int notification_id; // Cada notificação tem um id unico
+    private RemoteViews remoteViews; // Permite criar um layout customizado e combinar com a notificação
+    private Context context; // Apenas para evitar usar o metodo getApplication o tempo todo
 
 
     @Override
@@ -29,36 +29,42 @@ public class MainActivity extends AppCompatActivity {
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         builder = new NotificationCompat.Builder(this);
 
-        remoteViews = new RemoteViews(getPackageName(),R.layout.custom_notification);
-        remoteViews.setImageViewResource(R.id.notif_icon,R.mipmap.ic_launcher);
-        remoteViews.setTextViewText(R.id.notif_title,"TEXT");
-        remoteViews.setProgressBar(R.id.progressBar,100,40,true);
+        remoteViews = new RemoteViews(getPackageName(), R.layout.custom_notification);
+        remoteViews.setImageViewResource(R.id.notif_icon, R.mipmap.ic_launcher); // Alterar a imagem do ImageView
+        remoteViews.setTextViewText(R.id.notif_title, "Novo Texto"); // Alterar o texto do TextView
+        remoteViews.setProgressBar(R.id.progressBar, 100, 40, true);
 
+        // Como não estamos no contexto da activity não podemos criar um setOnClickListener para o botão
+        // é necessario utilizar o broadcast receiver que roda em background mesmo que a activity não esteja
+        // em foreground
 
+        // Exibe uma notificação
         findViewById(R.id.button_show_notif).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                notification_id = (int) System.currentTimeMillis();
+                notification_id = (int) System.currentTimeMillis(); // Geração de um id unico
 
+                // Criação de um filtro para o broadcast [o broadcast so esta escutando intents com o filtro 'button_click']
                 Intent button_intent = new Intent("button_click");
-                button_intent.putExtra("id",notification_id);
-                PendingIntent button_pending_event = PendingIntent.getBroadcast(context,notification_id,
-                        button_intent,0);
+                button_intent.putExtra("id", notification_id); // Passando o id(unico) da notificação
 
+                // Para fazer o broadcast desse intent devemos chamar o PendingIntent
+                PendingIntent button_pending_event = PendingIntent.getBroadcast(context, notification_id, button_intent, 0);
+                // Lingando o PendingIntent ao botão
                 remoteViews.setOnClickPendingIntent(R.id.button,button_pending_event);
 
-                Intent notification_intent = new Intent(context,MainActivity.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(context,0,notification_intent,0);
+                // Criação de uma nova notificação e ligação do remote view a esta notificação
+                // Se o usuario clicar na notificação em algum lugar que não seja no botão, a activity aparecerá
+                Intent notification_intent = new Intent(context, MainActivity.class);
+                PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, notification_intent, 0);
 
                 builder.setSmallIcon(R.mipmap.ic_launcher)
-                        .setAutoCancel(true)
+                        .setAutoCancel(true) // Remover a notificação quando ela é clicada
                         .setCustomBigContentView(remoteViews)
                         .setContentIntent(pendingIntent);
 
                 notificationManager.notify(notification_id,builder.build());
-
-
             }
         });
 

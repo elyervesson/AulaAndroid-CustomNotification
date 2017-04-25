@@ -4,7 +4,8 @@
     android:background="@color/colorPrimaryDark"
     android:orientation="horizontal"
     >
-
+    <!-- o layout height vai de 64dp (single line notification) ate  256dp (big notification [api 4.1]) -->
+    <!-- podemos usar imageview, textview, button, progressbar e chronometer nas notificações -->
     <ImageView
         android:id="@+id/notif_icon"
         android:layout_width="wrap_content"
